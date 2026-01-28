@@ -7,7 +7,7 @@ body {
   @apply h-full;
 }
 body {
-  @apply bg-gray-100;
+  @apply bg-gray-50;
 }
 @layer base {
   :root {
