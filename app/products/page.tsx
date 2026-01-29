@@ -3,11 +3,13 @@ import { Button } from "../_components/ui/button";
 import { PlusIcon } from "lucide-react";
 import { DataTable } from "../_components/ui/data-table";
 import { productsTableCol } from "./_components/table-colums";
-import { getProducts } from "../_data-accsess/products/getProducts";
+import CreateProductsButton from "../_components/ui/createProductButton";
 
 const ProductsPage = async () => {
-  const products = await getProducts();
+  const response = await fetch("http://localhost:3000/api/products");
+  const products = await response.json();
 
+ 
   return (
     <div className="space-y-8 h-full rounded-xl bg-white dark:bg-black p-5">
       <div className="flex items-center justify-between">
@@ -18,10 +20,7 @@ const ProductsPage = async () => {
           <h2 className="text-2xl font-semibold">Produtos</h2>
         </div>
 
-        <Button variant="default">
-          <PlusIcon size={16} />
-          Cadastrar Produto
-        </Button>
+      <CreateProductsButton />
       </div>
       <DataTable columns={productsTableCol} data={products} />
     </div>
