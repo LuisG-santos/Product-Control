@@ -20,12 +20,13 @@ import {
 import { Input } from "@/app/_components/ui/input";
 import { Combobox, ComboboxOption } from "@/app/_components/ui/combobox";
 import { Button } from "@/app/_components/ui/button";
-import { CheckIcon, PlusIcon } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { products } from "@prisma/client";
 import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/app/_components/ui/table";
 import { formatCurrency } from "@/app/_helpers/currency";
 import { useMemo } from "react";
+import MoreActions from "./more-actions";
 
 interface UpsertSheetProps {
   products: products[];
@@ -79,6 +80,12 @@ const UpsertSheet = ({ products, productOption}: UpsertSheetProps) => {
     return formatCurrency(selectedProduct.reduce((total, product) => total + product.price * product.quantity, 0));
   }, [selectedProduct]);
 
+  const onDelete = (productId: string) => {
+    setSelectedProduct((currentProducts) =>
+      currentProducts.filter((product) => product.id !== productId)
+    );
+  };
+
   return (
     <SheetContent className="!max-w-[700px]">
       <SheetHeader>
@@ -127,8 +134,8 @@ const UpsertSheet = ({ products, productOption}: UpsertSheetProps) => {
             )}
           />
           <Button className="w-full gap-2" variant="secondary" type="submit">
-            <CheckIcon className="mr-2 h-4 w-4" />
-            Finalizar Venda
+            <PlusIcon className="mr-2 h-4 w-4" />
+            Adicionar produto a venda
             </Button>
         </form>
       </Form>
@@ -141,6 +148,7 @@ const UpsertSheet = ({ products, productOption}: UpsertSheetProps) => {
           <TableHead>Preço unitário</TableHead>
           <TableHead>Quantidade</TableHead>
           <TableHead className="text-right">Total</TableHead>
+          <TableHead className="text-right">Ações</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -150,6 +158,9 @@ const UpsertSheet = ({ products, productOption}: UpsertSheetProps) => {
             <TableCell>{formatCurrency(product.price)}</TableCell>
             <TableCell>{product.quantity}</TableCell>
             <TableCell className="text-right">{formatCurrency(product.price * product.quantity)}</TableCell>
+            <TableCell className="text-right">
+              <MoreActions product={{id: product.id}} onDelete={onDelete} />
+            </TableCell>
           </TableRow>
         ))}
 
@@ -160,6 +171,7 @@ const UpsertSheet = ({ products, productOption}: UpsertSheetProps) => {
           <TableCell className="text-right">
             {productsTotal}
           </TableCell>
+          <TableCell />
         </TableRow>
       </TableFooter>
     </Table>
