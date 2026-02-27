@@ -8,7 +8,7 @@ export const upsertProductSchema = z.object({
     .number()
     .positive()
     .int()
-    .min(0, { error: "O estoque deve ser maior ou igual a zero" }),
+    .min(1, { error: "O estoque deve ser maior que zero" }),
 });
 
 export type UpsertProdutcSchema = z.infer<typeof upsertProductSchema>;

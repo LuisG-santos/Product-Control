@@ -3,6 +3,7 @@ import { DataTable } from "../_components/ui/data-table";
 import { productsTableCol } from "./_components/table-colums";
 import CreateProductsButton from "./_components/createProductButton";
 import { getProducts } from "../_data-accsess/products/getProducts";
+import { cache } from "react";
 
 const ProductsPage = async () => {
  const products = await getProducts();
