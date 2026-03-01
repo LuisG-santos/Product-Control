@@ -42,6 +42,6 @@ model saleProducts {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  sale    sale     @relation(fields: [saleId], references: [id])
-  product products @relation(fields: [productId], references: [id])
+  sale    sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product products @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
