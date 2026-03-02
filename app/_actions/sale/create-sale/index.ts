@@ -4,47 +4,52 @@ import { db } from "@/app/_lib/prisma";
 
 export const createSale = async (data: CreateSaleSchema) => {
   createSaleSchema.parse(data);
-  const sale = await db.sale.create({
-    data: {
-      date: new Date(),
-    },
-  });
+  await db.$transaction(async (tx) => {
 
-  for (const product of data.products) {
-    const products = await db.products.findUnique({
-      where: {
-        id: product.id,
-      },
-    });
-
-    if (!products) {
-      throw new Error(`Produto com id ${product.id} não encontrado`);
-    }
-
-    const productsIsOutOfStock = product.quantity > products.stock;
-
-    if (productsIsOutOfStock) {
-        throw new Error(`Quantidade do produto ${products.name} excede o estoque disponível (${products.stock})`);
-    }
-
-    await db.saleProducts.create({
+    const sale = await tx.sale.create({
       data: {
-        saleId: sale.id,
-        productId: product.id,
-        quantity: product.quantity,
-        unitPrice: products.price,
+        date: new Date(),
       },
     });
-    
-    await db.products.update({
+
+    for (const product of data.products) {
+      const products = await db.products.findUnique({
         where: {
-            id: product.id,
+          id: product.id,
+        },
+      });
+
+      if (!products) {
+        throw new Error(`Produto com id ${product.id} não encontrado`);
+      }
+
+      const productsIsOutOfStock = product.quantity > products.stock;
+
+      if (productsIsOutOfStock) {
+        throw new Error(
+          `Quantidade do produto ${products.name} excede o estoque disponível (${products.stock})`,
+        );
+      }
+
+      await tx.saleProducts.create({
+        data: {
+          saleId: sale.id,
+          productId: product.id,
+          quantity: product.quantity,
+          unitPrice: products.price,
+        },
+      });
+
+      await tx.products.update({
+        where: {
+          id: product.id,
         },
         data: {
-            stock:{
-                decrement: product.quantity,
-            }
+          stock: {
+            decrement: product.quantity,
+          },
         },
-    });
-  }
+      });
+    }
+  });
 };
