@@ -1,9 +1,8 @@
-import { Button } from "../_components/ui/button";
+
 import { ComboboxOption } from "../_components/ui/combobox";
-import { Sheet, SheetTrigger } from "../_components/ui/sheet";
 import { getProducts } from "../_data-accsess/products/getProducts";
 import CreateSaleButton from "./_components/create-sale-button";
-import UpsertSheet from "./_components/upsert-sheet";
+
 
 const SalesPage = async () => {
   const products = await getProducts();

@@ -2,7 +2,12 @@
 import { CreateSaleSchema, createSaleSchema } from "./schema";
 import { db } from "@/app/_lib/prisma";
 
-export const createSale = async (data: CreateSaleSchema) => {
+interface CreateSaleResponse {
+  data: any;
+ error?: any;
+}
+
+export const createSale = async (data: CreateSaleSchema): Promise<CreateSaleResponse> => {
   createSaleSchema.parse(data);
   await db.$transaction(async (tx) => {
 
@@ -20,15 +25,17 @@ export const createSale = async (data: CreateSaleSchema) => {
       });
 
       if (!products) {
-        throw new Error(`Produto com id ${product.id} não encontrado`);
+        return {
+          error: `Produto com id ${product.id} não encontrado`,
+        };
       }
 
       const productsIsOutOfStock = product.quantity > products.stock;
 
       if (productsIsOutOfStock) {
-        throw new Error(
-          `Quantidade do produto ${products.name} excede o estoque disponível (${products.stock})`,
-        );
+        return {
+          error: `Produto ${products.name} está sem estoque suficiente`,
+        };
       }
 
       await tx.saleProducts.create({
@@ -52,4 +59,5 @@ export const createSale = async (data: CreateSaleSchema) => {
       });
     }
   });
+  return { data: "Venda criada com sucesso" };
 };
