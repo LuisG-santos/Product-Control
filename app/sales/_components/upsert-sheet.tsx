@@ -39,6 +39,9 @@ import { useMemo } from "react";
 import MoreActions from "./more-actions";
 import { createSale } from "@/app/_actions/sale/create-sale";
 import { toast } from "sonner";
+import { useAction } from "next-safe-action/hooks";
+import { on } from "events";
+import { flattenValidationErrors } from "next-safe-action";
 
 interface UpsertSheetProps {
   products: products[];
@@ -60,8 +63,23 @@ interface SelectedProduct {
   quantity: number;
 }
 
-const UpsertSheet = ({ products, productOption, onSubmitSuccess }: UpsertSheetProps) => {
+const UpsertSheet = ({
+  products,
+  productOption,
+  onSubmitSuccess,
+}: UpsertSheetProps) => {
   const [selectedProduct, setSelectedProduct] = useState<SelectedProduct[]>([]);
+
+  const { execute: executeCreateSale } = useAction(createSale, {
+    onError: ({ error: { validationErrors, serverError } }) => {
+      const flattenedErrors = flattenValidationErrors(validationErrors);
+      toast.error(serverError ?? flattenedErrors.formErrors[0]);
+    },
+    onSuccess: () => {
+      toast.success("Venda criada com sucesso");
+      onSubmitSuccess?.();
+    },
+  });
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -105,8 +123,15 @@ const UpsertSheet = ({ products, productOption, onSubmitSuccess }: UpsertSheetPr
         form.setError("quantity", {
           message: `Quantidade excede o estoque disponível (${selectedProduct.stock})`,
         });
+        
+        if(selectedProduct.stock === 0) {
+          form.setError("quantity", {
+            message: `Produto sem estoque disponível`,
+          });
+        }
         return currentProducts;
       }
+
       form.reset();
       return [
         ...currentProducts,
@@ -134,24 +159,14 @@ const UpsertSheet = ({ products, productOption, onSubmitSuccess }: UpsertSheetPr
     );
   };
 
-  const onSubmitSale= async () => {
-
-    try{
-
-      await createSale({
-        products: selectedProduct.map((product) => ({
-          id: product.id,
-          quantity: product.quantity,
-        })),
-      });
-      toast.success("Venda criada com sucesso!");
-      if (onSubmitSuccess) {
-        onSubmitSuccess();
-      }
-    } catch (error) {
-      toast.error("Erro ao criar venda");
-    }
-  }
+  const onSubmitSale = async () => {
+    executeCreateSale({
+      products: selectedProduct.map((product) => ({
+        id: product.id,
+        quantity: product.quantity,
+      })),
+    });
+  };
 
   return (
     <SheetContent className="!max-w-[700px]">
@@ -245,7 +260,11 @@ const UpsertSheet = ({ products, productOption, onSubmitSuccess }: UpsertSheetPr
       </Table>
 
       <SheetFooter className="pt-6">
-        <Button disabled={selectedProduct.length === 0} onClick={onSubmitSale} className="w-full">
+        <Button
+          disabled={selectedProduct.length === 0}
+          onClick={onSubmitSale}
+          className="w-full"
+        >
           <CheckIcon className="mr-2 h-4 w-4" />
           Finalizar venda
         </Button>
