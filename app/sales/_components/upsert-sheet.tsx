@@ -21,7 +21,7 @@ import {
 import { Input } from "@/app/_components/ui/input";
 import { Combobox, ComboboxOption } from "@/app/_components/ui/combobox";
 import { Button } from "@/app/_components/ui/button";
-import { Check, CheckIcon, PlusIcon } from "lucide-react";
+import {CheckIcon, PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { products } from "@prisma/client";
 import {
@@ -40,7 +40,6 @@ import MoreActions from "./more-actions";
 import { createSale } from "@/app/_actions/sale/create-sale";
 import { toast } from "sonner";
 import { useAction } from "next-safe-action/hooks";
-import { on } from "events";
 import { flattenValidationErrors } from "next-safe-action";
 
 interface UpsertSheetProps {
@@ -73,10 +72,10 @@ const UpsertSheet = ({
   const { execute: executeCreateSale } = useAction(createSale, {
     onError: ({ error: { validationErrors, serverError } }) => {
       const flattenedErrors = flattenValidationErrors(validationErrors);
-      toast.error(serverError ?? flattenedErrors.formErrors[0]);
+      toast.error(serverError ?? flattenedErrors.formErrors[0], { position: "top-center" });
     },
     onSuccess: () => {
-      toast.success("Venda criada com sucesso");
+      toast.success("Venda criada com sucesso", { position: "top-center" });
       onSubmitSuccess?.();
     },
   });
